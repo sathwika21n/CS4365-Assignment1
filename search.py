@@ -148,7 +148,7 @@ def cost_search(problem, heuristic=lambda x,y: 0):
             elif child in pqueue:
                 old_node = pqueue.get(child)
                 if child.gcost < old_node.gcost:
-                    pqueue.update(child)
+                    pqueue.udpate(child)
     return []
 
 
@@ -176,31 +176,7 @@ def breadthFirstSearch(problem):
     Search the shallowest nodes in the search tree first.
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
-    start = problem.getStartState()
-    if problem.isGoalState(start):
-        return []
-
-    frontier = util.Queue()
-    frontier.push(Node(start, []))
-    frontier_states = set([start])
-    explored = set()
-
-    while frontier:
-        node = frontier.pop()
-        frontier_states.remove(node.state)
-
-        if problem.isGoalState(node.state):
-            return node.actions
-
-        explored.add(node.state)
-
-        for successor, action, step_cost in problem.getSuccessors(node.state):
-            if successor in explored or successor in frontier_states:
-                continue
-            frontier.push(Node(successor, node.actions + [action]))
-            frontier_states.add(successor)
-
-    return []
+    return search(problem, util.Queue())
 
 
 def uniformCostSearch(problem):

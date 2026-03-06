@@ -352,14 +352,24 @@ def cornersHeuristic(state, problem):
   on the shortest path from the state to a goal of the problem; i.e.
   it should be admissible (as well as consistent).
   """
-  walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+  walls = problem.walls
   location, corners = state
   if not corners:
     return 0
+    
   total_distance = 0
-  for _, p in sorted([(compute_blocked_distance(location, p, walls), p) for p in corners]):
-    total_distance += compute_blocked_distance(location, p, walls)
-    location = p
+  remaining = list(corners)
+  current = location
+    
+  while remaining:
+      nearest_dist, nearest_corner = min(
+        (compute_blocked_distance(current, c, walls), c)
+        for c in remaining
+      )
+      total_distance += nearest_dist
+      current = nearest_corner
+      remaining.remove(nearest_corner)
+    
   return total_distance
 
 
