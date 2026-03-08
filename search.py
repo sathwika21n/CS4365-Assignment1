@@ -128,29 +128,31 @@ class CostNode:
 
 def cost_search(problem, heuristic=lambda x,y: 0):
     """A generic search algorithm that can be used by UCS or a-star."""
-    
-  
-    s = problem.getStartState()
-    node = CostNode(s, [], 0, heuristic(s, problem))
-    explored = set()
-    pqueue = util.PQueue()
-    pqueue.push(node)
-    while pqueue:
-        node = pqueue.pop()
-        if problem.isGoalState(node.state):
-            return node.actions
-        explored.add(node.state)
-        for s, a, c in problem.getSuccessors(node.state):
-            actions = node.actions + [a]
-            gcost = node.gcost + c
-            hcost = heuristic(s, problem)
-            child = CostNode(s, actions, gcost, hcost)
-            if s not in explored and child not in pqueue:
-                pqueue.push(child)
-            elif child in pqueue:
-                old_node = pqueue.get(child)
-                if child.gcost < old_node.gcost:
-                    pqueue.update(child)
+
+    start = problem.getStartState()
+    frontier = util.PriorityQueue()
+    counter = 0
+    frontier.push((start, [], 0), (heuristic(start, problem), counter))
+    best_cost = {start: 0}
+
+    while not frontier.isEmpty():
+        state, actions, gcost = frontier.pop()
+
+        # Skip stale entries that are not the best known path to this state.
+        if gcost > best_cost.get(state, float('inf')):
+            continue
+
+        # Goal test must happen when a node is removed from the frontier.
+        if problem.isGoalState(state):
+            return actions
+
+        for succ, action, step_cost in problem.getSuccessors(state):
+            new_g = gcost + step_cost
+            if new_g < best_cost.get(succ, float('inf')):
+                best_cost[succ] = new_g
+                counter += 1
+                fcost = new_g + heuristic(succ, problem)
+                frontier.push((succ, actions + [action], new_g), (fcost, counter))
     return []
 
 
