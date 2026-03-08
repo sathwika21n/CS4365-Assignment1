@@ -496,28 +496,13 @@ def foodHeuristic(state, problem):
   cache = problem.heuristicInfo['distanceCache']
 
   def getMazeDistance(a, b):
-    if (a, b) not in cache:
-      cache[(a, b)] = mazeDistance(a, b, problem.startingGameState)
-      # store both directions to avoid repeated searches
-      cache[(b, a)] = cache[(a, b)]
-    return cache[(a, b)]
+    key = tuple(sorted((a, b)))
+    if key not in cache:
+      cache[key] = mazeDistance(a, b, problem.startingGameState)
+    return cache[key]
 
-  # Prim's MST, seeding from Pacman's current position.
-  # min_edge[f] = cheapest known edge connecting f to the "visited" set.
-  not_in_mst = list(foodList)
-  min_edge = {f: getMazeDistance(position, f) for f in not_in_mst}
-
-  mst_cost = 0
-  while not_in_mst:
-    best = min(not_in_mst, key=lambda f: min_edge[f])
-    mst_cost += min_edge[best]
-    not_in_mst.remove(best)
-    for f in not_in_mst:
-      d = getMazeDistance(best, f)
-      if d < min_edge[f]:
-        min_edge[f] = d
-
-  return mst_cost
+  # Consistent lower bound: at least the distance to the farthest remaining food.
+  return max(getMazeDistance(position, food) for food in foodList)
 
 class ClosestDotSearchAgent(SearchAgent):
   "Search for all food using a sequence of searches"
