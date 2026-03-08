@@ -352,24 +352,21 @@ def cornersHeuristic(state, problem):
   on the shortest path from the state to a goal of the problem; i.e.
   it should be admissible (as well as consistent).
   """
-  walls = problem.walls
   location, corners = state
   if not corners:
     return 0
-    
-  total_distance = 0
+
   remaining = list(corners)
+  total_distance = 0
   current = location
-    
+
   while remaining:
-      nearest_dist, nearest_corner = min(
-        (compute_blocked_distance(current, c, walls), c)
-        for c in remaining
-      )
-      total_distance += nearest_dist
-      current = nearest_corner
-      remaining.remove(nearest_corner)
-    
+    nearest_dist = min(util.manhattanDistance(current, c) for c in remaining)
+    nearest_corner = min(remaining, key=lambda c: util.manhattanDistance(current, c))
+    total_distance += nearest_dist
+    current = nearest_corner
+    remaining.remove(nearest_corner)
+
   return total_distance
 
 
@@ -487,33 +484,40 @@ class AStarFoodSearchAgent(SearchAgent):
     self.searchType = FoodSearchProblem
 
 def foodHeuristic(state, problem):
-  """
-  Your heuristic for the FoodSearchProblem goes here.
-
-  This heuristic must be consistent to ensure correctness.  First, try to come up
-  with an admissible heuristic; almost all admissible heuristics will be consistent
-  as well.
-
-  If using A* ever finds a solution that is worse uniform cost search finds,
-  your heuristic is *not* consistent, and probably not admissible!  On the other hand,
-  inadmissible or inconsistent heuristics may find optimal solutions, so be careful.
-
-  The state is a tuple ( pacmanPosition, foodGrid ) where foodGrid is a
-  Grid (see game.py) of either True or False. You can call foodGrid.asList()
-  to get a list of food coordinates instead.
-
-  If you want access to info like walls, capsules, etc., you can query the problem.
-  For example, problem.walls gives you a Grid of where the walls are.
-
-  If you want to *store* information to be reused in other calls to the heuristic,
-  there is a dictionary called problem.heuristicInfo that you can use. For example,
-  if you only want to count the walls once and store that value, try:
-    problem.heuristicInfo['wallCount'] = problem.walls.count()
-  Subsequent calls to this heuristic can access problem.heuristicInfo['wallCount']
-  """
   position, foodGrid = state
-  "*** YOUR CODE HERE ***"
-  return 0
+  foodList = foodGrid.asList()
+
+  if not foodList:
+    return 0
+
+  # Cache all pairwise maze distances between food pellets
+  if 'distanceCache' not in problem.heuristicInfo:
+    problem.heuristicInfo['distanceCache'] = {}
+  cache = problem.heuristicInfo['distanceCache']
+
+  def getMazeDistance(a, b):
+    if (a, b) not in cache:
+      cache[(a, b)] = mazeDistance(a, b, problem.startingGameState)
+      # store both directions to avoid repeated searches
+      cache[(b, a)] = cache[(a, b)]
+    return cache[(a, b)]
+
+  # Prim's MST, seeding from Pacman's current position.
+  # min_edge[f] = cheapest known edge connecting f to the "visited" set.
+  not_in_mst = list(foodList)
+  min_edge = {f: getMazeDistance(position, f) for f in not_in_mst}
+
+  mst_cost = 0
+  while not_in_mst:
+    best = min(not_in_mst, key=lambda f: min_edge[f])
+    mst_cost += min_edge[best]
+    not_in_mst.remove(best)
+    for f in not_in_mst:
+      d = getMazeDistance(best, f)
+      if d < min_edge[f]:
+        min_edge[f] = d
+
+  return mst_cost
 
 class ClosestDotSearchAgent(SearchAgent):
   "Search for all food using a sequence of searches"
@@ -541,7 +545,7 @@ class ClosestDotSearchAgent(SearchAgent):
     problem = AnyFoodSearchProblem(gameState)
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return search.bfs(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
   """
@@ -577,7 +581,8 @@ class AnyFoodSearchProblem(PositionSearchProblem):
     x,y = state
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    #util.raiseNotDefined()
+    return self.food[x][y]
 
 ##################
 # Mini-contest 1 #

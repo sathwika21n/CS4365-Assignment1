@@ -128,6 +128,8 @@ class CostNode:
 
 def cost_search(problem, heuristic=lambda x,y: 0):
     """A generic search algorithm that can be used by UCS or a-star."""
+    
+  
     s = problem.getStartState()
     node = CostNode(s, [], 0, heuristic(s, problem))
     explored = set()
@@ -148,7 +150,7 @@ def cost_search(problem, heuristic=lambda x,y: 0):
             elif child in pqueue:
                 old_node = pqueue.get(child)
                 if child.gcost < old_node.gcost:
-                    pqueue.udpate(child)
+                    pqueue.update(child)
     return []
 
 
@@ -168,7 +170,33 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    return search(problem, util.Stack())
+    """
+    Question1:
+    My explanation:
+    stack follows LIFO (Last in first out). So, the last node added is the first
+    one removedBecause of this, the search keeps going deeper along one branch
+    first before coming back to explore other branches. This is why it behaves
+    like Depth-First Search.
+    """
+    fringe = util.Stack()
+    fringe.push((problem.getStartState(), []))
+    explored = set()
+
+    while len(fringe):
+        state, actions = fringe.pop()
+
+        if problem.isGoalState(state):
+            return actions
+
+        if state in explored:
+            continue
+
+        explored.add(state)
+        for successor, action, stepCost in problem.getSuccessors(state):
+            if successor not in explored:
+                fringe.push((successor, actions + [action]))
+
+    return []
 
 
 def breadthFirstSearch(problem):
@@ -176,11 +204,31 @@ def breadthFirstSearch(problem):
     Search the shallowest nodes in the search tree first.
     [2nd Edition: p 73, 3rd Edition: p 82]
     """
+
+    """
+    Question 2:
+    My explanation:
+    A queue follows FIFO (First In, First Out). The first node added is the first
+    one removed. Because of this, the search explores all nodes at one level before
+    moving to the next level. This is why it behaves like Breadth-First Search.
+    
+    """
     return search(problem, util.Queue())
 
 
 def uniformCostSearch(problem):
     "Search the node of least total cost first. "
+    """
+    Question 3:
+    My explanation:
+    Uniform Cost Search (UCS) uses a priority queue that always picks the node with
+    the lowest total cost so far. This means the algorithm always explores the
+    cheapest path first, which helps it find the best solution when costs are not
+    negative. The goal is checked when a node is removed from the queue, because at
+    that point we know no cheaper path to that state exists. If a cheaper path to a
+    state is found later, the algorithm updates the queue and replaces the older
+    expensive path so it doesn't expand a worse one.
+    """
     return cost_search(problem)
 
 
@@ -194,6 +242,10 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     "Search the node that has the lowest combined cost and heuristic first."
+    """
+    A star algorithm finds the same optimal path as BFS/UCS but expands far fewer nodes because
+    Manhattan distance guides it in a straight line toward the goal in the open space.
+    """
     return cost_search(problem, heuristic)
 
 
