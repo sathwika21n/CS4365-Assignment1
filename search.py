@@ -264,6 +264,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     A star algorithm finds the same optimal path as BFS/UCS but expands far fewer nodes because
     Manhattan distance guides it in a straight line toward the goal in the open space.
 
+   question4(my explanaiton):
     What happens on openMaze for the various search strategies?
 	    On openMaze, DFS does the worst because it goes deep in one random direction and ends up with a long, messy, nonoptimal 
         path. BFS and UCS do find the shortest path, but they waste a lot of work by expanding in every direction across 
