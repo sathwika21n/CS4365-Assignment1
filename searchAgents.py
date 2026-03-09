@@ -28,6 +28,10 @@ project description for details.
 
 Good luck and happy searching!
 """
+
+#searchAgents.py contains different pacman agents that use search algorithms
+#to navigate to the maze
+#these are the agents implemented in search.py like DFS, BFS, and A*, etc. 
 import math
 from game import Directions
 from game import Agent
@@ -37,6 +41,9 @@ import time
 import search
 import searchAgents
 
+#this agent always tries to move west if possible 
+#if west is not a legal action, the agent will stop
+#this is mainly a simple example agent
 class GoWestAgent(Agent):
   "An agent that goes West until it can't."
 
@@ -52,6 +59,8 @@ class GoWestAgent(Agent):
 #       after you fill in parts of search.py          #
 #######################################################
 
+#this is a general purpose agent that could use any search algorithm
+#that is defined in search.py 
 class SearchAgent(Agent):
   """
   This very general search agent finds a path using a supplied search algorithm for a
@@ -93,7 +102,10 @@ class SearchAgent(Agent):
       raise AttributeError, prob + ' is not a search problem type in SearchAgents.py.'
     self.searchType = getattr(searchAgents, prob)
     print('[SearchAgent] using problem type ' + prob)
-
+  
+  #this function will be called when the game begins
+  #it will create the search problem and would run the chosen search algorithm
+  #to compute the path from the start state to the goal
   def registerInitialState(self, state):
     """
     This is the first time that the agent sees the layout of the game board. Here, we
@@ -110,6 +122,8 @@ class SearchAgent(Agent):
     print('Path found with total cost of %d in %.1f seconds' % (totalCost, time.time() - starttime))
     if '_expanded' in dir(problem): print('Search nodes expanded: %d' % problem._expanded)
 
+  #this returns the next action in the precomputed path
+  #if all the actions are executed, pacman would stop
   def getAction(self, state):
     """
     Returns the next action in the path chosen earlier (in registerInitialState).  Return
@@ -352,21 +366,32 @@ def cornersHeuristic(state, problem):
   on the shortest path from the state to a goal of the problem; i.e.
   it should be admissible (as well as consistent).
   """
+  #this is the current position and the remaining corners
   location, corners = state
   if not corners:
+    #if all the corners are visited then no cost would remain
     return 0
 
+  #convert the tuple to list to modify it
   remaining = list(corners)
   total_distance = 0
+  #start from the pacmans current position
   current = location
 
   while remaining:
+    #find the distance to the nearest corner
     nearest_dist = min(util.manhattanDistance(current, c) for c in remaining)
+    
+    #identify which corner is the nearest
     nearest_corner = min(remaining, key=lambda c: util.manhattanDistance(current, c))
-    total_distance += nearest_dist
-    current = nearest_corner
-    remaining.remove(nearest_corner)
 
+    #this will add the distance to the heuristic estimate
+    total_distance += nearest_dist
+    #moves the current position to that corner
+    current = nearest_corner
+    #removes the visited corner
+    remaining.remove(nearest_corner)
+  #returns the estimated remaining costs
   return total_distance
 
 
@@ -484,10 +509,13 @@ class AStarFoodSearchAgent(SearchAgent):
     self.searchType = FoodSearchProblem
 
 def foodHeuristic(state, problem):
+  #pacmans position and remaining food grid
   position, foodGrid = state
+  #converts the food grid into a list of food coordinates
   foodList = foodGrid.asList()
 
   if not foodList:
+    #if no food remains the cost would be 0
     return 0
 
   # Cache all pairwise maze distances between food pellets
@@ -523,9 +551,11 @@ class ClosestDotSearchAgent(SearchAgent):
 
   def findPathToClosestDot(self, gameState):
     "Returns a path (a list of actions) to the closest dot, starting from gameState"
-    # Here are some useful elements of the startState
+    #pacmans current position
     startPosition = gameState.getPacmanPosition()
+    #grid of the remaining food
     food = gameState.getFood()
+    #maze walls
     walls = gameState.getWalls()
     problem = AnyFoodSearchProblem(gameState)
 
@@ -563,10 +593,12 @@ class AnyFoodSearchProblem(PositionSearchProblem):
     The state is Pacman's position. Fill this in with a goal test
     that will complete the problem definition.
     """
+    #current pacman position
     x,y = state
 
     "*** YOUR CODE HERE ***"
     #util.raiseNotDefined()
+    #goal will reach if pacmans position contains food
     return self.food[x][y]
 
 ##################
