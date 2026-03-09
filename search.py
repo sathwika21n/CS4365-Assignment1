@@ -179,6 +179,18 @@ def depthFirstSearch(problem):
     one removedBecause of this, the search keeps going deeper along one branch
     first before coming back to explore other branches. This is why it behaves
     like Depth-First Search.
+
+    Is the exploration order what you would have expected?  
+	    Yes, DFS goes straight down one path before backing up, so the explored route looks 
+        like one long, deep line instead of a wide spread.
+	Does actually go to all the explored squares on his way to the goal?
+        No, DFS checks lots of dead ends that aren’t part of the final route. Pacman only walks 
+        the actual solution path, not every square DFS explored.
+	Is this a least cost solution?
+	    No, DFS doesn’t try to find the shortest or cheapest path. It just finds a path. In mediumMaze 
+        it gives a path of length 130, which is much worse than BFS’s optimal one. Depending on the order of 
+        successors, DFS can even return a path as long as 246 steps.
+
     """
     fringe = util.Stack()
     fringe.push((problem.getStartState(), []))
@@ -214,6 +226,10 @@ def breadthFirstSearch(problem):
     one removed. Because of this, the search explores all nodes at one level before
     moving to the next level. This is why it behaves like Breadth-First Search.
     
+    Does BFS find a least cost solution?  
+        Yes, if every step costs the same. In that case, the shallowest goal is also the cheapest path. 
+        If step costs differ, BFS is no longer optimal, and UCS is needed instead.
+
     """
     return search(problem, util.Queue())
 
@@ -247,6 +263,14 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     """
     A star algorithm finds the same optimal path as BFS/UCS but expands far fewer nodes because
     Manhattan distance guides it in a straight line toward the goal in the open space.
+
+    What happens on openMaze for the various search strategies?
+	    On openMaze, DFS does the worst because it goes deep in one random direction and ends up with a long, messy, non‑optimal 
+        path. BFS and UCS do find the shortest path, but they waste a lot of work by expanding in every direction across 
+        the open grid. A* with the Manhattan heuristic also finds the optimal path, but it expands far fewer nodes because, 
+        in an open maze with no walls, the Manhattan distance is almost exact. This lets A* head almost straight toward the 
+        goal while skipping most of the grid that BFS and UCS would explore.
+
     """
     return cost_search(problem, heuristic)
 
