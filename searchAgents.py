@@ -510,15 +510,20 @@ class AStarFoodSearchAgent(SearchAgent):
 
 def foodHeuristic(state, problem):
   #pacmans position and remaining food grid
+
+  #the state is a tuple of (pacmanPosition, foodGrid)
+  #foodGrid is a grid object tracking which cells still have food
   position, foodGrid = state
   #converts the food grid into a list of food coordinates
+  #where the food still exists
   foodList = foodGrid.asList()
 
+  #base case
   if not foodList:
     #if no food remains the cost would be 0
     return 0
 
-  # Cache all pairwise maze distances between food pellets
+  #we cache maze distances to avoid recomputing them on every call
   if 'distanceCache' not in problem.heuristicInfo:
     problem.heuristicInfo['distanceCache'] = {}
   cache = problem.heuristicInfo['distanceCache']
@@ -559,7 +564,6 @@ class ClosestDotSearchAgent(SearchAgent):
     walls = gameState.getWalls()
     problem = AnyFoodSearchProblem(gameState)
 
-    "*** YOUR CODE HERE ***"
     return search.bfs(problem)
 
 class AnyFoodSearchProblem(PositionSearchProblem):
@@ -631,10 +635,18 @@ def mazeDistance(point1, point2, gameState):
 
   This might be a useful helper function for your ApproximateSearchAgent.
   """
+  #extracting x and y coordinates of the first point
   x1, y1 = point1
+  #extracting x and y coordinates of the second point
   x2, y2 = point2
+
+  #getting the wall grid from the game state
   walls = gameState.getWalls()
+  #making sure that the first point is not inside a wall
   assert not walls[x1][y1], 'point1 is a wall: ' + point1
+  #making sure that the second point is not inside a wall
   assert not walls[x2][y2], 'point2 is a wall: ' + str(point2)
+  #creating a search problem from point 1 to point 2
   prob = PositionSearchProblem(gameState, start=point1, goal=point2, warn=False)
+  #using BFS to compute the shortest path and returning its length
   return len(search.bfs(prob))
